@@ -4,16 +4,18 @@ const blogModel = require('../models/blogModel')
 const createBlog = async function (req, res) {
     try {
         let newBlogEntry = req.body;
-        if (!newBlogEntry.title || !newBlogEntry.body || !newBlogEntry.author_id || !newBlogEntry.tags) {
+        if (!newBlogEntry.title || !newBlogEntry.body || !newBlogEntry.author_id || !newBlogEntry.tags)
             res.status(404).send({ status: false, msg: "Mandatory Feilds is required!" });
-            let newBlog = await blogModel.create(newBlogEntry);
+        let newBlog = await blogModel.create(newBlogEntry);
             return res.status(201).send({ msg: newBlog });
-        }
+    
     }
     catch (err) {
         return res.status(500).send({ Error: err.message })
     }
 }
+
+
 // *********************************************************************
 
 const getBlog = async function (req, res) {
@@ -114,7 +116,7 @@ const deleteBlog = async function (req, res) {
 
 // ********************************************************************************
 const deleteBlogsBySelection = async function (req, res) {
-    let data = req.query;
+    try{let data = req.query;
     filter = {
         isPublished: false
     };
@@ -146,7 +148,10 @@ const deleteBlogsBySelection = async function (req, res) {
         })
     }
     return res.status(400).send({ status: true, msg: "Blog is already deleted" })
-
+    }
+    catch (err) {
+        return res.status(500).send({ error: err.message })
+    }
 }
 
 
