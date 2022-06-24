@@ -7,20 +7,20 @@ const createBlog = async function (req, res) {
         if (!newBlogEntry.title || !newBlogEntry.body || !newBlogEntry.author_id || !newBlogEntry.tags)
             res.status(404).send({ status: false, msg: "Mandatory Feilds is required!" });
         let newBlog = await blogModel.create(newBlogEntry);
-            return res.status(201).send({ msg: newBlog });
-    
+        return res.status(201).send({ msg: newBlog });
+
     }
     catch (err) {
         return res.status(500).send({ Error: err.message })
     }
 }
 
-
 // *********************************************************************
 
 const getBlog = async function (req, res) {
     try {
         let data = req.query;
+        console.log(data.tags)
         filter = {
             isDeleted: false,
             isPublished: true
@@ -32,11 +32,21 @@ const getBlog = async function (req, res) {
         if (data.author_id) {
             filter.author_id = data.author_id;
         }
-        if (data.tags) {
-            filter.tags = data.tags;
-        }
+        // if (data.tags) {
+        //     filter.tags = data.tags;
+        // }
+        if(data.tags){
+            let tagsArray = data.tags.split(',')
+            // console.log(tagsArray)
+            filter.tags = {$in : tagsArray}
+            // console.log(filter.tags)
+           }
+        // if (data.subcategory) {
+        //     filter.subcategory = data.subcategory;
+        // }
         if (data.subcategory) {
-            filter.subcategory = data.subcategory;
+            let subcategoryArray = data.subcategory.split(',')
+            filter.subcategory = {$in : subcategoryArray};
         }
         let filteredBlog = await blogModel.find(filter)
 
@@ -52,15 +62,18 @@ const getBlog = async function (req, res) {
         return res.status(500).send({ Error: err.message })
     }
 }
-
-// ************************************************************
+// ****************************************************************
 const updateBlog = async function (req, res) {
     try {
         const blogId = req.params.blogId;
         const blogDocument = req.body;
-        let isBlogIdExists = await blogModel.findOne({ $and: [{ _id: blogId }, { isDeleted: false }] }).select({ _id: 1 });
-        if (!isBlogIdExists) {
-            return res.status(404).send('Blog Id is required!!')
+        let isBlogIdExists = await blogModel.findOne({ _id: blogId }).select({ isDeleted: 1, _id: 0 });
+        //console.log(isBlogIdExists.isDeleted)
+        if (isBlogIdExists.isDeleted == true) {
+            return res.status(404).send({
+                status: false,
+                msg: 'Blog does not exist!!'
+            })
         }
         const updatedBlog = await blogModel.findByIdAndUpdate({ _id: blogId }, blogDocument, { new: true })
         if (!updatedBlog.isPublished) {
@@ -89,7 +102,7 @@ const updateBlog = async function (req, res) {
     }
 }
 
-// *************************************************************
+// ************************************************************
 const deleteBlog = async function (req, res) {
     try {
         const blogId = req.params.blogId;
@@ -99,9 +112,9 @@ const deleteBlog = async function (req, res) {
                 { _id: getblogId },
                 { $set: { isDeleted: true } },
                 { new: true })
-            return res.status(204).send({
+            return res.status(200).send({
                 status: true,
-                msg: "Blog has been deleted"
+                msg: "Blog is deleted"
             })
         }
         return res.status(404).send({
@@ -114,51 +127,51 @@ const deleteBlog = async function (req, res) {
     }
 }
 
-// ********************************************************************************
+
+// *********************************************
 const deleteBlogsBySelection = async function (req, res) {
-    try{let data = req.query;
-    filter = {
-        isPublished: false
-    };
-    // if(data.author_id!==null)
-    // filter.author_id = data.author_id;
-    if (data.category) {
-        filter.category = data.category;
-    }
-    if (data.author_id) {
-        filter.author_id = data.author_id;
-    }
-    if (data.tags) {
-        filter.tags = data.tags;
-    }
-    if (data.subcategory) {
-        filter.subcategory = data.subcategory;
-    }
-    let blogDetail = await blogModel.findOne(filter).select({ isDeleted: 1, _id: 0 })
-    if (blogDetail.isDeleted == false) {
-        let timeStamp = new Date();
-        let deleteBlog = await blogModel.updateMany(
-            filter,
-            { isDeleted: true, deletedAt: timeStamp },
-            { new: true }
-        )
-        return res.status(204).send({
-            status: true,
-            msg: "Blog has been deleted"
-        })
-    }
-    return res.status(400).send({ status: true, msg: "Blog is already deleted" })
+    try {
+        let data = req.query;
+        filter = {
+            isPublished: false
+        };
+        if (data.category) {
+            filter.category = data.category;
+        }
+        if (data.author_id) {
+            filter.author_id = data.author_id;
+        }
+        if (data.tags) {
+            filter.tags = data.tags;
+        }
+       
+        if (data.subcategory) {
+            filter.subcategory = data.subcategory;
+        }
+        let blogDetail = await blogModel.findOne(filter)
+        if (blogDetail.isDeleted == false) {
+            let timeStamp = new Date();
+            let deleteBlog = await blogModel.updateMany(
+                filter,
+                { isDeleted: true, deletedAt: timeStamp },
+                { new: true }
+            )
+            res.status(200).send({
+                status: true,
+                 data: deleteBlog 
+            })
+        }
+        else {
+            res.status(400).send({ status: true, msg: "Blog is already deleted" })
+        }
+
     }
     catch (err) {
-        return res.status(500).send({ error: err.message })
+        res.status(500).send({ status: false, msg: err.message })
     }
+
 }
 
 
 
-
-module.exports.createBlog = createBlog;
-module.exports.getBlog = getBlog
-module.exports.updateBlog = updateBlog
-module.exports.deleteBlog = deleteBlog
-module.exports.deleteBlogsBySelection = deleteBlogsBySelection
+module.exports = {createBlog ,getBlog ,updateBlog ,deleteBlog ,deleteBlogsBySelection}
