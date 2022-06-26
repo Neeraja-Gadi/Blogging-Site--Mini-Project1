@@ -5,33 +5,33 @@ const blogModel = require('../models/blogModel');
 const authentication = async function(req,res,next){
     try{
         let authorId;
-        let authorIdToBeModified;
-        const token = req.headers['x-api-key'];
+        //let authorIdToBeModified;
+        const token = req.headers['x-api-key'] ;
         if(!token){
-            res.status(401).send({status: false, msg: 'Token does not exist'})
+           return res.status(401).send({status: false, msg: 'Token does not exist'})
         }
         const decodeToken = jwt.verify(token,'SECRET-OF-GROUP28');
         // console.log(decodeToken)
         if(!decodeToken){
-            res.status(401).send({status: false, msg: 'Token is invalid'})
+            return res.status(401).send({status: false, msg: 'Token is invalid'})
         }
-        const blogId = req.params.blogId;
-        if(blogId){
-             authorId = await blogModel.findOne({_id: blogId}).select({author_id: 1});
-        }
-        else{
-            authorId = req.query.author_id
-        }
+        // const blogId = req.params.blogId;
+        // if(blogId){
+        //      authorId = await blogModel.findOne({_id: blogId}).select({author_id: 1});
+        // }
+        // else{
+        //     authorId = decodeToken.authorId //taking author_id from token
+        // }
         
         // console.log(author);
        // const author = await authorModel.findById({_id: authorId.author_id})
         //const authorIdToBeModified = authorId.author_id.toString();
-      if(!authorId)
-      res.status(400).send({status: false, msg: 'Author does not exist!!!'})
+    //   if(!authorId)
+    //   res.status(400).send({status: false, msg: 'Author does not exist!!!'})
       next();
     }
     catch(err){
-        res.status(500).send({status: false, msg: err.message})
+        return res.status(500).send({status: false, msg: err.message})
     }
 }
 
@@ -65,7 +65,7 @@ const authorisation = async function(req,res,next){
     catch(err){
         return res.status(500).send({
                      status: false,
-                     msg: err.message
+                     msg: 'bye'
          })
     }
 }
