@@ -60,7 +60,8 @@ const getBlog = async function (req, res) {
   }
 };
 
-// ************************************
+// ******************************************************************
+
 const updateBlog = async function (req, res) {
   try {
     const blogId = req.params.blogId;
