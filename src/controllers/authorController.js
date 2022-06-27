@@ -98,7 +98,7 @@ const login = async function (req, res) {
       msg: "You are Logged in!!",
     });
   } catch (err) {
-    res.status(500).send({ status: false, msh: err.message });
+    res.status(500).send({ status: false, msg: err.message });
   }
 };
 

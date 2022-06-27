@@ -40,7 +40,7 @@ const authorisation = async function (req, res, next) {
     } else {
       //getting authorId from query param if Blogid is not given in path param
       console.log(filterData);
-      let author = await blogModel.find(filterData, { isDeleted: false });
+      let author = await blogModel.find({$and:[filterData, { isDeleted: false }]});
       console.log(author);
       if (author.length === 0) {
         return res.status(400).send({ status: false, msg: "Blog not found" });
