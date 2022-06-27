@@ -1,59 +1,60 @@
-const jwt = require('jsonwebtoken');
-const authorModel = require('../models/authorModel');
+const jwt = require('jsonwebtoken');        
 const blogModel = require('../models/blogModel');
 
 const authentication = async function(req,res,next){
     try{
-        let authorId;
-        //let authorIdToBeModified;
-        const token = req.headers['x-api-key'] ;
-        if(!token){
+        let token = req.headers['x-api-key']; //Setting token from the header
+        if (!token) token = req.headers["x-Api-key"];
+        if(!token){                             //Checking if token having value
            return res.status(401).send({status: false, msg: 'Token does not exist'})
         }
-        const decodeToken = jwt.verify(token,'SECRET-OF-GROUP28');
-        // console.log(decodeToken)
+        const decodeToken = jwt.verify(token,'SECRET-OF-GROUP28'); //Decoding loggedin person token
+        console.log(decodeToken)
         if(!decodeToken){
-            return res.status(401).send({status: false, msg: 'Token is invalid'})
+           return res.status(401).send({status: false, msg: 'Token is invalid'})
         }
-        // const blogId = req.params.blogId;
+        const blogId = req.params.blogId;
         // if(blogId){
-        //      authorId = await blogModel.findOne({_id: blogId}).select({author_id: 1});
+        //      authorId = await blogModel.findById({_id: blogId}).select({author_id: 1});
         // }
         // else{
-        //     authorId = decodeToken.authorId //taking author_id from token
+        //     authorId = req.query.author_id 
         // }
-        
-        // console.log(author);
-       // const author = await authorModel.findById({_id: authorId.author_id})
-        //const authorIdToBeModified = authorId.author_id.toString();
     //   if(!authorId)
     //   res.status(400).send({status: false, msg: 'Author does not exist!!!'})
       next();
     }
     catch(err){
-        return res.status(500).send({status: false, msg: err.message})
+       return res.status(500).send({status: false, msg: err.message})
     }
 }
 
+
 const authorisation = async function(req,res,next){
     try{
-        const token = req.headers['x-api-key'];
-        const decodeToken = jwt.verify(token,'SECRET-OF-GROUP28');
+        const token = req.headers['x-api-key'];   //Setting token from the header
+        const decodeToken = jwt.verify(token,'SECRET-OF-GROUP28'); //Decoding loggedin person token
         const loggedInAuthorId = decodeToken.authorId;
-        //authorIdToBeModified = req.params.authorId; // authorId of the user whose data we want to change
         const blogId = req.params.blogId;
+        const filterData = req.query;
+        let authorIdToBeModified;
         if(blogId){
-            authorId = await blogModel.findOne({_id: blogId}).select({author_id: 1});
-             authorIdToBeModified = authorId.author_id.toString();
+           let author = await blogModel.findOne({_id: blogId}).select({author_id: 1}); //Fetching authorId using blogId
+             authorIdToBeModified = author.author_id.toString();
        }
        else{
-           authorId = req.query.author_id,
-           authorIdToBeModified = authorId
-       }
-        //const authorId = await blogModel.findOne({_id: blogId}).select({author_id: 1});
-        // console.log(author);
+        //getting authorId from query param if Blogid is not given in path param
+        // console.log(filterData);
+       let author = await blogModel.find(filterData,{isDeleted:false});
+    //    console.log(author)
+        if(author.length===0){
+            return res.status(400).send({status: false, msg: 'Blog not found'})
+        }
         
-        // console.log(authorIdToBeModified)
+           let filteredAuthor= author.filter(blog=>blog.author_id.toString() === loggedInAuthorId)
+           filteredAuthor.map(el=>authorIdToBeModified = el.author_id.toString())
+       }
+        //Comparing loggedIn author's Id with the author's Id which data is to be modified
         if(loggedInAuthorId !== authorIdToBeModified){
         return res.status(403).send({
             status: false,
@@ -65,7 +66,7 @@ const authorisation = async function(req,res,next){
     catch(err){
         return res.status(500).send({
                      status: false,
-                     msg: 'bye'
+                     msg: err.message
          })
     }
 }

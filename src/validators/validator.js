@@ -21,3 +21,15 @@ const authorController = require('../controllers/authorController')
 // res.status(201).send({ data: authorCreated })
 // }
 // module.exports.validator =validator
+
+
+// if (filters.tags) {
+    //     let tagArray
+    //     if (filters.tags.includes(",")) {
+    //         tagArray = filters.tags.split(",").map(String).map(x => x.trim())
+    //         filters.tags = { $all: tagArray }
+    //     } else {
+    //         tagArray = filters.tags.trim().split(" ").map(String).map(x => x.trim())
+    //         filters.tags = { $all: tagArray }
+    //     }
+    // }
