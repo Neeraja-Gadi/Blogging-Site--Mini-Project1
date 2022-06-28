@@ -1,6 +1,6 @@
-const AuthorModel = require("../models/authorModel");
+// const AuthorModel = require("../models/authorModel");
 var validator = require("email-validator");
-const validationchecker = require('../validators/validator')
+// const validationchecker = require('../validators/validator')
 const authorModel = require("../models/authorModel");
 const jwt = require("jsonwebtoken");
 //const blogModel = require("../models/blogModel");
@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const isRequestBodyValid = function (reqBody) {
   if (Object.keys(reqBody).length > 0) return true;
 };
+
 const createAuthor = async function (req, res) {
   try {
     let author = req.body;
@@ -75,7 +76,7 @@ const createAuthor = async function (req, res) {
       return;
     }
     if (!author.email) {
-      res.status(400).send({ status: false, msg: "Please Enter Password" });
+      res.status(400).send({ status: false, msg: "Please Enter Email" });
       return;
     }
     let isEmailValid = validator.validate(author.email);

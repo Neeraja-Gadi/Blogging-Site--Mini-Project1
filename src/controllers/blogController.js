@@ -44,12 +44,7 @@ const createBlog = async function (req, res) {
       res.status(400).send({ status: false, msg: "Enter valid body" });
       return;
     }
-      // Checking for valid authorId from body
-      // if (newBlogEntry.author_id !== req.authorID) {
-      //   return res
-      //     .status(400)
-      //     .send({ status: false, msg: "No Author matches ID" });
-      // }
+    
     //creating new document with given entry in body
     let newBlog = await blogModel.create(newBlogEntry);
     return res.status(201).send({
