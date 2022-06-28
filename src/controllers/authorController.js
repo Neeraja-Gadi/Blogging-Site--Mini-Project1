@@ -3,33 +3,61 @@ var validator = require("email-validator");
 const validationchecker = require('../validators/validator')
 const authorModel = require("../models/authorModel");
 const jwt = require("jsonwebtoken");
-const blogModel = require("../models/blogModel");
+//const blogModel = require("../models/blogModel");
 
+const isRequestBodyValid = function (reqBody) {
+  if (Object.keys(reqBody).length > 0) return true;
+};
 const createAuthor = async function (req, res) {
   try {
     let author = req.body;
     let validPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)/;
     let validName = /^[A-Za-z ]+$/;
+    const isValidTitle = function (title) {
+      let enumValues = ["Mr", "Mrs", "Miss"];
+      if (enumValues.indexOf(title) !== -1) return true;
+    };
 
-    if (
-      !author.fname ||
-      typeof author.fname !== "string" ||
-      !validName.test(author.fname)
-    ) {
-      res.status(400).send({ status: false, msg: "Enter valid FirstName" });
+    if (!isRequestBodyValid(author)) {
+      res
+        .status(400)
+        .send({ status: false, msg: "Please Provide Author's Details" });
       return;
     }
-
-    if (
-      !author.lname ||
-      typeof author.lname !== "string" ||
-      !validName.test(author.lname)
-    ) {
+    if (typeof author.fname === "undefined" || author.fname === null) {
+      res
+        .status(400)
+        .send({ status: false, msg: "FirstName is either undefined or null" });
+      return;
+    }
+    if (!author.fname) {
+      res.status(400).send({ status: false, msg: "Please Enter FirstName" });
+      return;
+    }
+    if (typeof author.fname !== "string" || !validName.test(author.fname)) {
+      res.status(400).send({ status: false, msg: "Enter valid  FirstName" });
+      return;
+    }
+    if (!author.lname) {
+      res.status(400).send({ status: false, msg: "Please Enter LastName" });
+      return;
+    }
+    if (typeof author.lname !== "string" || !validName.test(author.lname)) {
       res.status(400).send({ status: false, msg: "Enter valid LastName" });
       return;
     }
+    if (!author.title) {
+      res.status(400).send({ status: false, msg: "Please Enter Title" });
+      return;
+    }
+    if (!isValidTitle(author.title)) {
+      res.status(400).send({ status: false, msg: "Enter valid Title" });
+    }
+    if (!author.password) {
+      res.status(400).send({ status: false, msg: "Please Enter Password" });
+      return;
+    }
     if (
-      !author.password ||
       typeof author.password !== "string" ||
       !validPassword.test(author.password)
     ) {
@@ -48,6 +76,10 @@ const createAuthor = async function (req, res) {
         .send({ status: false, msg: "Length of password is exceeding" });
       return;
     }
+    if (!author.email) {
+      res.status(400).send({ status: false, msg: "Please Enter Password" });
+      return;
+    }
     let isEmailValid = validator.validate(author.email);
     if (!isEmailValid) {
       res
@@ -58,27 +90,41 @@ const createAuthor = async function (req, res) {
       let authorsData = await authorModel.find();
       authorsData.map((el) => {
         if (el.email === author.email) {
-          res.status(400).send("Email Id already exists");
+          res
+            .status(400)
+            .send({ status: false, msg: "Email Id already exists" });
           return;
         }
       });
     }
-    let authorCreated = await AuthorModel.create(author);
-    res.status(201).send({ data: authorCreated });
+    let authorCreated = await authorModel.create(author);
+    res.status(201).send({ status: true, data: authorCreated });
     return;
   } catch (err) {
-    res.status(500).send({status: false, msg: err.message });
+    res.status(500).send({ status: false, msg: err.message });
     return;
   }
 };
 
 const login = async function (req, res) {
   try {
-    let userName = req.body.email;
-    let password = req.body.password;
+    const credentials = req.body;
+    if (!isRequestBodyValid(credentials)) {
+      res
+        .status(400)
+        .send({ status: false, msg: "Please Provide login credentials" });
+      return;
+    }
+    if (!validator.validate(credentials.email)) {
+      res
+        .status(400)
+        .send({ status: false, msg: "Please Enter Valid Email Id" });
+      return;
+    }
+    const { userName, password } = credentials;
     let logIn = await authorModel.findOne({
-      email: userName,
-      password: password,
+      userName,
+      password,
     });
     if (!logIn)
       return res.status(400).send({
@@ -96,6 +142,7 @@ const login = async function (req, res) {
     res.status(201).send({
       status: true,
       msg: "You are Logged in!!",
+      data: { token },
     });
   } catch (err) {
     res.status(500).send({ status: false, msg: err.message });

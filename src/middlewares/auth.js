@@ -21,6 +21,7 @@ const authentication = async function (req, res, next) {
   }
 };
 
+
 const authorisation = async function (req, res, next) {
   try {
     const token = req.headers["x-api-key"]; //Setting token from the header
@@ -33,14 +34,16 @@ const authorisation = async function (req, res, next) {
       let author = await blogModel
         .findById({ _id: blogId })
         .select({ author_id: 1 }); //Fetching author id using blogId
-        if(!author){
-            return res.send({status: false, msg: 'No Blog found'})
-        }
+      if (!author) {
+        return res.send({ status: false, msg: "No Blog found" });
+      }
       authorIdToBeModified = author.author_id.toString();
     } else {
       //getting authorId from query param if Blogid is not given in path param
       console.log(filterData);
-      let author = await blogModel.find({$and:[filterData, { isDeleted: false }]});
+      let author = await blogModel.find({
+        $and: [filterData, { isDeleted: false }],
+      });
       console.log(author);
       if (author.length === 0) {
         return res.status(400).send({ status: false, msg: "Blog not found" });
@@ -60,6 +63,7 @@ const authorisation = async function (req, res, next) {
         msg: "Author has no permission to change other author's blog",
       });
     }
+    req.loggedInAuthor = decodeToken.author_id;
     next();
   } catch (err) {
     return res.status(500).send({

@@ -1,19 +1,48 @@
 const { response } = require("express");
+const authorModel = require("../models/authorModel");
 const blogModel = require("../models/blogModel");
 
 const createBlog = async function (req, res) {
   try {
     let newBlogEntry = req.body;
-    //Validation if any manadatory field is empty
-    if (
-      !newBlogEntry.title ||
-      !newBlogEntry.body ||
-      !newBlogEntry.author_id ||
-      !newBlogEntry.tags
-    ) {
+    const isRequestBodyValid = function (reqBody) {
+      if (Object.keys(reqBody).length > 0) return true;
+    };
+    if (!isRequestBodyValid(newBlogEntry)) {
+      res
+        .status(400)
+        .send({ status: false, msg: "Please Provide Blog's Details" });
+      return;
+    }
+    //Validations
+    if (!newBlogEntry.title) {
       return res
         .status(404)
-        .send({ status: false, msg: "Mandatory Feilds are required!" });
+        .send({ status: false, msg: "Please Enter Title!" });
+    }
+    if (!newBlogEntry.body) {
+      res.status(400).send({ status: false, msg: "Please Enter Title!" });
+      return;
+    }
+    if (!newBlogEntry.author_id) {
+      res.status(400).send({ status: false, msg: "Please Enter Author id" });
+      return;
+    }
+    if (!newBlogEntry.tags) {
+      res.status(400).send({ status: false, msg: "Please Enter tags" });
+      return;
+    }
+    if (!newBlogEntry.category) {
+      res.status(400).send({ status: false, msg: "Please Enter category" });
+      return;
+    }
+    if (typeof newBlogEntry.title !== "string") {
+      res.status(400).send({ status: false, msg: "Enter valid title" });
+      return;
+    }
+    if (typeof newBlogEntry.body !== "string") {
+      res.status(400).send({ status: false, msg: "Enter valid body" });
+      return;
     }
     //creating new document with given entry in body
     let newBlog = await blogModel.create(newBlogEntry);
@@ -25,6 +54,8 @@ const createBlog = async function (req, res) {
     return res.status(500).send({status: false, Error: err.message });
   }
 };
+
+// ********************************************************************************************************
 
 const getBlog = async function (req, res) {
   try {
@@ -43,15 +74,15 @@ const getBlog = async function (req, res) {
       filter.author_id = data.author_id;
     }
     if (data.tags) {
-      let tagArr = data.tags.split(",");
+      let tagArr = data.tags.split(",").map((x) => x.trim());
       filter.tags = { $in: tagArr };
     }
     if (data.subcategory) {
-      let subcategoryArr = data.subcategory.split(",");
+      let subcategoryArr = data.subcategory.split(",").map((x) => x.trim());
       filter.subcategory = { $in: subcategoryArr };
     }
     let filteredBlog = await blogModel.find(filter);
-    if (filteredBlog.length < 1) {
+    if (filteredBlog.length === 0) {
       return res.status(404).send({ status: false, msg: "No Blog found" });
     }
     res.status(200).send({ status: true, data: { filteredBlog } });
@@ -60,53 +91,62 @@ const getBlog = async function (req, res) {
   }
 };
 
-// ******************************************************************
+// ********************************************************************************************************
 
 const updateBlog = async function (req, res) {
   try {
     const blogId = req.params.blogId;
     const blogDocument = req.body;
+    if (Object.keys(blogDocument).length === 0) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "Please Enter Details to update" });
+    }
+    //Checking for valid authorId from body
+    if (blogDocument.author_id !== req.loggedInAuthor) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "Entering invalid authorId" });
+    }
+
     //Finding the document in the blogs collection on the basis of blogId given in path param
-    let isBlogIdExists = await blogModel
-      .findOne({$and:[{_id: blogId},{isDeleted: false }] })
-      .select({ isDeleted: 1, _id: 0 });
+    let isBlogIdExists = await blogModel.find({
+      $and: [{ _id: blogId }, { isDeleted: false }],
+    });
+    console.log(isBlogIdExists);
+
     //Checking If blog is deleted
-    if (!isBlogIdExists) {
+    if (isBlogIdExists.length === 0) {
       return res.status(404).send({
         status: false,
         msg: "Blog does not exist!!",
       });
     }
+
     //updating blog with given entries in body If blog is not deleted
+    let timeStamps = new Date();
+    if (isBlogIdExists.isPublished === false) {
+      blogDocument.publishedAt = null;
+    }
+    blogDocument.publishedAt = timeStamps;
     const updatedBlog = await blogModel.findByIdAndUpdate(
       { _id: blogId },
       { $set: blogDocument },
       { new: true }
     );
-    //Checking if updated blog is unpublished
-    if (!updatedBlog.isPublished) {
-      let timeStamps = new Date();
-      //Making Unpublished blog published
-      let updateBlogAdditionalData = await blogModel.findOneAndUpdate(
-        { _id: blogId }, //finding the blogId in the COLLECTION to update the PUBLISH STATUS & PUBLISHEDAT
-        { isPublished: true, publishedAt: timeStamps }, //updating the IsPublished status publishedAt
-        { new: true }
-      );
-      return res.status(200).send({
-        status: true,
-        data: {
-          updateBlogAdditionalData,
-        },
-      });
-    }
     return res.status(200).send({
       status: true,
-      msg: "Blog is already published",
+      data: {
+        updatedBlog,
+      },
     });
-  } catch (err) {
+  } 
+  catch (err) {
     return res.status(500).send({status: false, error: err.message });
   }
 };
+
+// ********************************************************************************************************
 
 const deleteBlog = async function (req, res) {
   try {
@@ -117,9 +157,10 @@ const deleteBlog = async function (req, res) {
     });
     //Deleting the blog If undeleted blog with given blogId exists
     if (getblog) {
+      let timeStamp = new Date();
       let deletedBlog = await blogModel.findOneAndUpdate(
         { _id: getblog._id },
-        { $set: { isDeleted: true } },
+        { $set: { isDeleted: true, deletedAt: timeStamp } },
         { new: true }
       );
       return res.status(200).send({
@@ -136,6 +177,9 @@ const deleteBlog = async function (req, res) {
     return res.status(500).send({status: false, error: err.message });
   }
 };
+
+// ********************************************************************************************************
+
 const deleteBlogsBySelection = async function (req, res) {
   try {
     let data = req.query;
@@ -152,11 +196,11 @@ const deleteBlogsBySelection = async function (req, res) {
       filter.author_id = data.author_id;
     }
     if (data.tags) {
-      let tagArr = data.tags.split(",");
+      let tagArr = data.tags.split(",").map((x) => x.trim());
       filter.tags = { $in: tagArr };
     }
     if (data.subcategory) {
-      let subcategoryArr = data.subcategory.split(",");
+      let subcategoryArr = data.subcategory.split(",").map((x) => x.trim());
       filter.subcategory = { $in: subcategoryArr };
     }
     //Fetching Blogs with given filter object
