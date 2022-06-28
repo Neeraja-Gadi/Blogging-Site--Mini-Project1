@@ -44,6 +44,12 @@ const createBlog = async function (req, res) {
       res.status(400).send({ status: false, msg: "Enter valid body" });
       return;
     }
+      // Checking for valid authorId from body
+      // if (newBlogEntry.author_id !== req.authorID) {
+      //   return res
+      //     .status(400)
+      //     .send({ status: false, msg: "No Author matches ID" });
+      // }
     //creating new document with given entry in body
     let newBlog = await blogModel.create(newBlogEntry);
     return res.status(201).send({
@@ -51,7 +57,7 @@ const createBlog = async function (req, res) {
       data: { newBlog },
     });
   } catch (err) {
-    return res.status(500).send({status: false, Error: err.message });
+    return res.status(500).send({ status: false, Error: err.message });
   }
 };
 
@@ -87,7 +93,7 @@ const getBlog = async function (req, res) {
     }
     res.status(200).send({ status: true, data: { filteredBlog } });
   } catch (err) {
-    res.status(500).send({status: false, Error: err.message });
+    res.status(500).send({ status: false, Error: err.message });
   }
 };
 
@@ -106,7 +112,7 @@ const updateBlog = async function (req, res) {
     if (blogDocument.author_id !== req.loggedInAuthor) {
       return res
         .status(400)
-        .send({ status: false, msg: "Entering invalid authorId" });
+        .send({ status: false, msg: "authorId Match Not found" });
     }
 
     //Finding the document in the blogs collection on the basis of blogId given in path param
@@ -140,9 +146,9 @@ const updateBlog = async function (req, res) {
         updatedBlog,
       },
     });
-  } 
+  }
   catch (err) {
-    return res.status(500).send({status: false, error: err.message });
+    return res.status(500).send({ status: false, error: err.message });
   }
 };
 
@@ -174,7 +180,7 @@ const deleteBlog = async function (req, res) {
       msg: "Blog is not found",
     });
   } catch (err) {
-    return res.status(500).send({status: false, error: err.message });
+    return res.status(500).send({ status: false, error: err.message });
   }
 };
 

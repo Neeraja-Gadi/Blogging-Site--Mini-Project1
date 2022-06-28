@@ -16,11 +16,11 @@ const authentication = async function (req, res, next) {
       return res.status(401).send({ status: false, msg: "Token is invalid" });
     }
     next();
+    req.authorID =decodeToken.author_id
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
   }
 };
-
 
 const authorisation = async function (req, res, next) {
   try {

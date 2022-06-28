@@ -58,9 +58,7 @@ const createAuthor = async function (req, res) {
       return;
     }
     if (
-      typeof author.password !== "string" ||
-      !validPassword.test(author.password)
-    ) {
+      typeof author.password !== "string" || !validPassword.test(author.password)) {
       res.status(400).send({ status: false, msg: "Enter valid Password" });
       return;
     }
@@ -86,7 +84,8 @@ const createAuthor = async function (req, res) {
         .status(400)
         .send({ status: false, msg: "Please enter valid Email Id" });
       return;
-    } else {
+    } 
+    else {
       let authorsData = await authorModel.find();
       authorsData.map((el) => {
         if (el.email === author.email) {
@@ -100,11 +99,14 @@ const createAuthor = async function (req, res) {
     let authorCreated = await authorModel.create(author);
     res.status(201).send({ status: true, data: authorCreated });
     return;
-  } catch (err) {
+  } 
+  catch (err) {
     res.status(500).send({ status: false, msg: err.message });
     return;
   }
 };
+
+// ********************************************************************************************
 
 const login = async function (req, res) {
   try {
