@@ -24,12 +24,25 @@ const authorController = require('../controllers/authorController')
 
 
 // if (filters.tags) {
-    //     let tagArray
-    //     if (filters.tags.includes(",")) {
-    //         tagArray = filters.tags.split(",").map(String).map(x => x.trim())
-    //         filters.tags = { $all: tagArray }
-    //     } else {
-    //         tagArray = filters.tags.trim().split(" ").map(String).map(x => x.trim())
-    //         filters.tags = { $all: tagArray }
-    //     }
-    // }
+//         let tagArray
+//         if (filters.tags.includes(",")) {
+//             tagArray = filters.tags.split(",").map(String).map(x => x.trim())
+//             filters.tags = { $all: tagArray }
+//         } else {
+//             tagArray = filters.tags.trim().split(" ").map(String).map(x => x.trim())
+//             filters.tags = { $all: tagArray }
+//         }
+//     }
+
+
+  //   if (userData.tags||userData.subcategory) {
+  //     userData.$push = {}
+  //     if(userData.tags){
+  //         userData.$push.tags =  userData.tags.split(",") 
+  //         delete userData.tags
+  //     }
+  //     if (userData.subcategory) {
+  //         userData.$push.subcategory = userData.subcategory.split(",")
+  //         delete userData.subcategory
+  //     }
+  // }

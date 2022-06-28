@@ -67,7 +67,7 @@ const createAuthor = async function (req, res) {
     res.status(201).send({ data: authorCreated });
     return;
   } catch (err) {
-    res.status(500).send({ msg: err.message });
+    res.status(500).send({status: false, msg: err.message });
     return;
   }
 };
@@ -93,7 +93,7 @@ const login = async function (req, res) {
       "SECRET-OF-GROUP28"
     );
     res.setHeader("x-api-key", token);
-    res.status(200).send({
+    res.status(201).send({
       status: true,
       msg: "You are Logged in!!",
     });

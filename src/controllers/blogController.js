@@ -22,7 +22,7 @@ const createBlog = async function (req, res) {
       data: { newBlog },
     });
   } catch (err) {
-    return res.status(500).send({ Error: err.message });
+    return res.status(500).send({status: false, Error: err.message });
   }
 };
 
@@ -56,7 +56,7 @@ const getBlog = async function (req, res) {
     }
     res.status(200).send({ status: true, data: { filteredBlog } });
   } catch (err) {
-    res.status(500).send({ Error: err.message });
+    res.status(500).send({status: false, Error: err.message });
   }
 };
 
@@ -104,7 +104,7 @@ const updateBlog = async function (req, res) {
       msg: "Blog is already published",
     });
   } catch (err) {
-    return res.status(500).send({ error: err.message });
+    return res.status(500).send({status: false, error: err.message });
   }
 };
 
@@ -133,7 +133,7 @@ const deleteBlog = async function (req, res) {
       msg: "Blog is not found",
     });
   } catch (err) {
-    return res.status(500).send({ error: err.message });
+    return res.status(500).send({status: false, error: err.message });
   }
 };
 const deleteBlogsBySelection = async function (req, res) {
