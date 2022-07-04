@@ -1,9 +1,8 @@
-// const AuthorModel = require("../models/authorModel");
+
 var validator = require("email-validator");
 // const validationchecker = require('../validators/validator')
 const authorModel = require("../models/authorModel");
 const jwt = require("jsonwebtoken");
-//const blogModel = require("../models/blogModel");
 
 const isRequestBodyValid = function (reqBody) {
   if (Object.keys(reqBody).length > 0) return true;
