@@ -15,6 +15,7 @@ const authentication = async function (req, res, next) {
     if (!decodeToken) {
       return res.status(401).send({ status: false, msg: "Token is invalid" });
     }
+    req.AuthorloggedIn = decodeToken.authorId;
     next();
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });

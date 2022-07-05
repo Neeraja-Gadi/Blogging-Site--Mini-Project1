@@ -46,6 +46,11 @@ const createBlog = async function (req, res) {
     }
     
     //creating new document with given entry in body
+    if (newBlogEntry.author_id !== req.AuthorloggedIn) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "authorId Match not found" });
+    }
     let newBlog = await blogModel.create(newBlogEntry);
     return res.status(201).send({
       status: true,
