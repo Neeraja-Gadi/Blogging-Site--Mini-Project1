@@ -21,19 +21,25 @@ const createBlog = async function (req, res) {
         .send({ status: false, msg: "Please Enter Title!" });
     }
     if (!newBlogEntry.body) {
-      res.status(400).send({ status: false, msg: "Please Enter Title!" });
+      res.status(400).send({ status: false, msg: "Please Enter body!" });
       return;
     }
     if (!newBlogEntry.author_id) {
       res.status(400).send({ status: false, msg: "Please Enter Author id" });
       return;
     }
-    if (newBlogEntry.author_id !== req.loggedInAuthor) {
+   
+    isAuthorIdExist = await authorModel.findOne({_id: newBlogEntry.author_id});
+    if(!isAuthorIdExist){
+      res.status(400).send({ status: false, msg: "Please Enter valid Author id" });
+      return;
+    }
+     if (newBlogEntry.author_id !== req.loggedInAuthor) {
       return res
         .status(400)
-        .send({ status: false, msg: "enter valid authorId " });
+        .send({ status: false, msg: " authorId is not same with loggedin author" });
     }
-    if (!newBlogEntry.tags) {
+    if (!newBlogEntry.tags || newBlogEntry.tags.length === 0) {
       res.status(400).send({ status: false, msg: "Please Enter tags" });
       return;
     }
@@ -49,23 +55,16 @@ const createBlog = async function (req, res) {
       res.status(400).send({ status: false, msg: "Enter valid body" });
       return;
     }
-    
     //creating new document with given entry in body
-    // if (newBlogEntry.author_id !== req.AuthorloggedIn) {
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, msg: "authorId Match not found" });
-    // }
     let newBlog = await blogModel.create(newBlogEntry);
     return res.status(201).send({
       status: true,
       data: { newBlog },
     });
   } catch (err) {
-    return res.status(500).send({ status: false, Error: err.message });
+    return res.status(500).send({ Error: err.message });
   }
 };
-
 // ********************************************************************************************************
 
 const getBlog = async function (req, res) {
@@ -112,18 +111,13 @@ const updateBlog = async function (req, res) {
         .status(400)
         .send({ status: false, msg: "Please Enter Details to update" });
     }
-    console.log(req)
-    //Checking for valid authorId from body
-    //  if (blogDocument.author_id !== req.loggedInAuthor) {
-    //    return res
-    //      .status(400)
-    //      .send({ status: false, msg: "Entering invalid authorId" });
-    //  }
+    // console.log(req)
+    
     //Finding the document in the blogs collection on the basis of blogId given in path param
     let isBlogIdExists = await blogModel.findOne({
       $and: [{ _id: blogId }, { isDeleted: false }],
     });
-    console.log(isBlogIdExists);
+    // console.log(isBlogIdExists);
     //Checking If blog is deleted
     if (!isBlogIdExists) {
       return res.status(404).send({

@@ -11,11 +11,10 @@ const authentication = async function (req, res, next) {
         .send({ status: false, msg: "Token does not exist" });
     }
     const decodeToken = jwt.verify(token, "SECRET-OF-GROUP28"); //Decoding loggedin person token
-    console.log(decodeToken);
+    //  console.log(decodeToken);
     if (!decodeToken) {
       return res.status(401).send({ status: false, msg: "Token is invalid" });
     }
-    // req.AuthorloggedIn = decodeToken.authorId;
      req.loggedInAuthor = decodeToken.authorId;
 
     next();
@@ -42,7 +41,7 @@ const authorisation = async function (req, res, next) {
       authorIdToBeModified = author.author_id.toString();
     } else {
       //getting authorId from query param if Blogid is not given in path param
-      console.log(filterData);
+      // console.log(filterData);
       let author = await blogModel.find({
         $and: [filterData, { isDeleted: false }],
       });
