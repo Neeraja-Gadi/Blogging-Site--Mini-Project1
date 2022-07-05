@@ -65,7 +65,7 @@ const authorisation = async function (req, res, next) {
         msg: "Author has no permission to change other author's blog",
       });
     }
-    req.loggedInAuthor = decodeToken.author_id;
+    req.loggedInAuthor = decodeToken.authorId;
     next();
   } catch (err) {
     return res.status(500).send({

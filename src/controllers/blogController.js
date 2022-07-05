@@ -114,11 +114,11 @@ const updateBlog = async function (req, res) {
     }
     console.log(req)
     //Checking for valid authorId from body
-     if (blogDocument.author_id !== req.loggedInAuthor) {
-       return res
-         .status(400)
-         .send({ status: false, msg: "Entering invalid authorId" });
-     }
+    //  if (blogDocument.author_id !== req.loggedInAuthor) {
+    //    return res
+    //      .status(400)
+    //      .send({ status: false, msg: "Entering invalid authorId" });
+    //  }
     //Finding the document in the blogs collection on the basis of blogId given in path param
     let isBlogIdExists = await blogModel.findOne({
       $and: [{ _id: blogId }, { isDeleted: false }],
@@ -213,11 +213,10 @@ const deleteBlogsBySelection = async function (req, res) {
     //For filling filter object on the basis of field
     //given in query param for fileration in blogs collection
     filter = {
-      isPublished: false,
       isDeleted: false,
     };
     if (data.category) {
-      filter.category = data.category;
+      filter.category = data.category.trim();
     }
     if (data.author_id) {
       filter.author_id = data.author_id;
@@ -229,6 +228,9 @@ const deleteBlogsBySelection = async function (req, res) {
     if (data.subcategory) {
       let subcategoryArr = data.subcategory.split(",").map((x) => x.trim());
       filter.subcategory = { $in: subcategoryArr };
+    }
+    if(data.isPublished) {
+      filter.isPublished = data.isPublished.trim()
     }
     //Fetching Blogs with given filter object
     let blogDetail = await blogModel
